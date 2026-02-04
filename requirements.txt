@@ -1,0 +1,10 @@
+Flask
+python-dotenv
+openai
+pandas
+numpy
+matplotlib
+joblib
+requests
+scikit-learn
+yfinance

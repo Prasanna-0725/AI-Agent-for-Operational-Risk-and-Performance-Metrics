@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: risk-chat-bot-deployment
+  labels:
+    app: risk-chat-bot
+spec:
+  # Run 2 instances for redundancy and load balancing
+  replicas: 2
+  selector:
+    matchLabels:
+      app: risk-chat-bot
+  template:
+    metadata:
+      labels:
+        app: risk-chat-bot
+    spec:
+      containers:
+        - name: risk-chat-bot
+          # !!! CHANGE THIS TO YOUR ACTUAL DOCKER IMAGE PATH !!!
+          image: yourusername/risk-chat-bot:latest
+          ports:
+            - containerPort: 5000
+          imagePullPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: risk-chat-bot-service
+  labels:
+    app: risk-chat-bot
+spec:
+  selector:
+    app: risk-chat-bot
+  ports:
+    - protocol: TCP
+      # External port (Kubernetes service port)
+      port: 80
+      # Internal port (container port)
+      targetPort: 5000
+  # Use LoadBalancer for cloud environments or NodePort/ClusterIP for local testing
+  type: LoadBalancer

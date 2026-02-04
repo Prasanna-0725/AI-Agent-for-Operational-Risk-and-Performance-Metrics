@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Operational Risk Dashboard & AI Assistant</title>
+    <style>
+        body {
+            font-family: "Segoe UI", Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f6f9fc;
+            color: #333;
+        }
+        .header {
+            background: linear-gradient(90deg, #007bff, #0056b3);
+            color: white;
+            text-align: center;
+            padding: 25px;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+        }
+        .dashboard-container {
+            max-width: 1100px;
+            margin: 30px auto;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        }
+        h2 {
+            color: #007bff;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 8px;
+        }
+        img {
+            max-width: 100%;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+        }
+        .status-bar {
+            padding: 15px;
+            background-color: #d4edda;
+            color: #155724;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            font-weight: bold;
+            text-align: center;
+            border: 1px solid #c3e6cb;
+        }
+
+        /* Floating AI button */
+        #chat-toggle-button {
+            position: fixed;
+            bottom: 25px;
+            right: 25px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 50px;
+            padding: 15px 25px;
+            font-size: 16px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+        #chat-toggle-button:hover {
+            background: #218838;
+        }
+
+        /* Chat Modal */
+        .chat-modal {
+            display: none;
+            position: fixed;
+            z-index: 999;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+        }
+        .chat-content {
+            background: white;
+            width: 80%;
+            max-width: 700px;
+            margin: 5% auto;
+            border-radius: 10px;
+            padding: 20px;
+            height: 75%;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 3px 15px rgba(0,0,0,0.3);
+        }
+        .chat-header {
+            font-weight: bold;
+            font-size: 20px;
+            color: #007bff;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .chat-window {
+            flex-grow: 1;
+            overflow-y: auto;
+            background: #f1f1f1;
+            padding: 15px;
+            border-radius: 6px;
+        }
+        .message {
+            margin: 10px 0;
+            padding: 10px 15px;
+            border-radius: 20px;
+            max-width: 80%;
+        }
+        .user { background: #007bff; color: white; margin-left: auto; }
+        .agent { background: #d4edda; color: #155724; margin-right: auto; }
+        .chat-input {
+            display: flex;
+            margin-top: 10px;
+        }
+        #user-input {
+            flex-grow: 1;
+            padding: 10px;
+            font-size: 15px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        #send-button {
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            margin-left: 8px;
+            padding: 10px 20px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>Operational Risk Dashboard</h1>
+        <p>Real-time Metrics and Visualizations</p>
+    </div>
+
+    <div class="dashboard-container">
+        <div class="status-bar">
+            ✅ System Status: AI Agent is active and monitoring real-time data.
+        </div>
+
+        <h2>📈 Risk Metrics (Live Insights)</h2>
+        <div id="metrics-box">
+            <p>No metrics available yet. Ask the AI assistant for metrics insights.</p>
+        </div>
+
+        <h2>📊 Risk Visualizations</h2>
+        <div id="chart-area">
+            <p>No charts generated yet. Ask the AI assistant to show visualizations.</p>
+        </div>
+    </div>
+
+    <button id="chat-toggle-button">🤖 Launch AI Assistant</button>
+
+    <div id="chat-modal" class="chat-modal">
+        <div class="chat-content">
+            <div class="chat-header">
+                🤖 AI Risk Assistant
+                <span style="cursor:pointer;" onclick="closeChat()">&times;</span>
+            </div>
+            <div id="chat-window" class="chat-window">
+                <div class="message agent">
+                    Hello! I'm your Operational Risk AI Agent.<br>
+                    Try commands like: <b>‘metrics’, ‘chart’, ‘trend’, ‘HDFC metrics’, ‘ICICI metrics’</b>.
+                </div>
+            </div>
+            <div class="chat-input">
+                <input id="user-input" placeholder="Type your command...">
+                <button id="send-button">Send</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const chatModal = document.getElementById('chat-modal');
+        const chatWindow = document.getElementById('chat-window');
+        const metricsBox = document.getElementById('metrics-box');
+        const chartArea = document.getElementById('chart-area');
+
+        document.getElementById('chat-toggle-button').onclick = () => {
+            chatModal.style.display = 'block';
+            document.getElementById('user-input').focus();
+        };
+        function closeChat() { chatModal.style.display = 'none'; }
+
+        document.getElementById('send-button').onclick = sendMessage;
+        document.getElementById('user-input').addEventListener('keypress', e => {
+            if (e.key === 'Enter') sendMessage();
+        });
+
+        function sendMessage() {
+            const message = document.getElementById('user-input').value.trim();
+            if (!message) return;
+            document.getElementById('user-input').value = '';
+
+            const userDiv = document.createElement('div');
+            userDiv.className = 'message user';
+            userDiv.textContent = message;
+            chatWindow.appendChild(userDiv);
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+
+            fetch('/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message })
+            })
+            .then(res => res.json())
+            .then(data => {
+                const agentDiv = document.createElement('div');
+                agentDiv.className = 'message agent';
+                agentDiv.innerHTML = data.response || "Assistant responded.";
+                chatWindow.appendChild(agentDiv);
+                chatWindow.scrollTop = chatWindow.scrollHeight;
+
+                if (data.metrics) {
+                    const m = data.metrics;
+                    let html = `<div style="font-size:14px;line-height:1.45">`;
+
+                    if (m.is_financial) {
+                        // --- FINANCIAL METRICS DISPLAY ---
+                        html += `<strong>🏦 ${m.company_name} - Key Financial Metrics</strong><br>`;
+                        html += `<hr style="margin:8px 0">`;
+                        
+                        // Display the specific financial summary (from app.py's financial_summary)
+                        for (const [key, val] of Object.entries(m.financial_summary)) {
+                            html += `<strong>${key}:</strong> ${val}<br>`;
+                        }
+
+                    } else {
+                        // --- OPERATIONAL RISK METRICS DISPLAY (Original Logic) ---
+                        html += `<strong>Total records:</strong> ${m.total_records}<br>`;
+                        html += `<strong>Total Loss (kUSD):</strong> ${m.total_loss_all.toLocaleString(undefined, {maximumFractionDigits:2})}<br>`;
+                        html += `<strong>Mean Loss:</strong> ${m.mean_loss.toFixed(2)} &nbsp; <strong>Median:</strong> ${m.median_loss.toFixed(2)}<br>`;
+                        html += `<hr style="margin:8px 0">`;
+                        html += `<strong>Top Losses by Event</strong><br><ul>`;
+                        
+                        let idx = 0;
+                        for (const [evt, val] of Object.entries(m.total_loss_by_event)) {
+                            idx++;
+                            html += `<li><strong>${evt}</strong>: ${Number(val).toLocaleString(undefined, {maximumFractionDigits:2})} kUSD</li>`;
+                            if (idx >= 10) break;
+                        }
+                        html += `</ul><hr style="margin:8px 0">`;
+                        
+                        if (m.yearly_trend) {
+                            html += `<strong>Yearly Trend:</strong><br><small>`;
+                            const yrs = Object.keys(m.yearly_trend).sort();
+                            html += yrs.map(y => `${y}: ${Number(m.yearly_trend[y]).toLocaleString(undefined, {maximumFractionDigits:2})}`).join(" | ");
+                            html += `</small><br>`;
+                        }
+
+                        if (m.top_losses && m.top_losses.length) {
+                            html += `<hr style="margin:8px 0"><strong>Top Individual Losses:</strong><ol>`;
+                            m.top_losses.slice(0,5).forEach(r => {
+                                html += `<li>${r["Event Type"]} — ${Number(r["Loss Amount (kUSD)"]).toLocaleString(undefined, {maximumFractionDigits:2})} kUSD (Year: ${r.Year})</li>`;
+                            });
+                            html += `</ol>`;
+                        }
+                    }
+                    
+                    html += `</div>`;
+                    metricsBox.innerHTML = html;
+                }
+
+                if (data.chart_url) {
+                    // Update chart image, appending a timestamp to force refresh
+                    chartArea.innerHTML = `<img src="${data.chart_url}?t=${new Date().getTime()}" alt="Risk Chart">`;
+                }
+            })
+            .catch(err => {
+                const errDiv = document.createElement('div');
+                errDiv.className = 'message agent';
+                errDiv.textContent = '❌ Error connecting to server or processing data.';
+                chatWindow.appendChild(errDiv);
+            });
+        }
+    </script>
+</body>
+</html>
